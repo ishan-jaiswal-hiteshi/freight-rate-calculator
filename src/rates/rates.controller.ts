@@ -15,7 +15,7 @@ import * as XLSX from 'xlsx';
 export class RatesController {
   constructor(private readonly ratesService: RatesService) {}
 
-  @Post('upload')
+  @Post('upload-xlsx')
   @UseInterceptors(
     FileFieldsInterceptor(
       [
@@ -23,8 +23,7 @@ export class RatesController {
         { name: 'destinationsFile', maxCount: 1 },
       ],
       {
-        // optional multer config:
-        limits: { files: 2, fileSize: 5 * 1024 * 1024 }, // max 5MB each
+        limits: { files: 2, fileSize: 5 * 1024 * 1024 }, // max 5MB file
       },
     ),
   )
@@ -49,13 +48,11 @@ export class RatesController {
     const hubsFile = hubsArray[0];
     const destinationsFile = destArray[0];
 
-    // Process the Excel files
     const result = await this.ratesService.processExcelFiles(
       hubsFile,
       destinationsFile,
     );
 
-    // Create Excel file from result
     const worksheet = XLSX.utils.json_to_sheet(result);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Rates');
@@ -65,7 +62,6 @@ export class RatesController {
       bookType: 'xlsx',
     });
 
-    // Send back the generated file
     res.set({
       'Content-Type':
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
